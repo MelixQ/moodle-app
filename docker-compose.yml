@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  moodle:
+    image: bitnami/moodle:latest
+    container_name: moodle
+    restart: unless-stopped
+    ports:
+      - "80:8080"     # HTTP
+      - "443:8443"    # HTTPS
+    environment:
+      - MOODLE_DATABASE_TYPE=pgsql                # Force PostgreSQL
+      - MOODLE_DATABASE_HOST=moodle_db            # PostgreSQL service name
+      - MOODLE_DATABASE_PORT=5432                 # Default PostgreSQL port
+      - MOODLE_DATABASE_USER=${MOODLE_DB_USER}           # Custom user
+      - MOODLE_DATABASE_PASSWORD=${MOODLE_DB_PASSWORD}
+      - MOODLE_DATABASE_NAME=${MOODLE_DB_NAME}
+      - MOODLE_USERNAME=${MOODLE_ADMIN_USER}                     # Admin username
+      - MOODLE_PASSWORD=${MOODLE_ADMIN_PASSWORD}            # Admin password
+      - MOODLE_SITE_NAME=My LMS
+    volumes:
+      - moodledata:/bitnami/moodle
+      - moodledata_php:/bitnami/php
+      - ./custom_theme:/bitnami/moodle/theme/custom_theme  # Custom themes
+    depends_on:
+      - moodle_db
+      
+
+  moodle_db:
+    image: bitnami/postgresql:latest
+    container_name: moodle_db
+    restart: unless-stopped
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRES_ROOT_PASSWORD}
+      - POSTGRESQL_USERNAME=${MOODLE_DB_USER}
+      - POSTGRESQL_PASSWORD=${MOODLE_DB_PASSWORD}
+      - POSTGRESQL_DATABASE=${MOODLE_DB_NAME}
+    volumes:
+      - postgres_data:/bitnami/postgresql
+
+volumes:
+  moodledata:
+  moodledata_php:
+  postgres_data:
